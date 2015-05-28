@@ -176,7 +176,7 @@ ACTIVE=1
 * libglib2
 
 
-# Build Intrustions
+# Build Instructions
 
 Just run make, I think this is enough to install dependencies:
 
