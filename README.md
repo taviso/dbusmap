@@ -31,8 +31,8 @@ PID                 USER                                        NAME            
 ...
 ```
 
-The name will either be it's well known name, or if it begines with ':' that's
-a unique name assigned by dbus. If a well-known name is unprotected and you have
+The name will either be its well known name, or if it begins with ':' that's
+a unique name assigned by D-Bus. If a well-known name is unprotected and you have
 enabled probes (see below), a ! appears after the name. This means that you
 have permission to take over the name.
 
