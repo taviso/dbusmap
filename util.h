@@ -6,6 +6,12 @@
 
 extern gint timeout;
 
+#include <libxml/xpath.h>
+gchar* get_method_signature(xmlNodePtr node);
+gchar* get_property_signature(xmlNodePtr node);
+
+GVariant* build_invalid_body(const gchar* sig);
+
 GVariant * g_dbus_simple_send(GDBusConnection *bus, GDBusMessage *msg, const gchar *type);
 
 #endif

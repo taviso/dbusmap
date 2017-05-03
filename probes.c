@@ -13,7 +13,7 @@ gboolean enable_access_probes;
 // Call a remote method with invalid arguments and check whether the error
 // returned is access denied or invalid args. If it's the former, it's not very
 // interesting.
-gboolean check_access_method(GDBusConnection *bus, const gchar *dest, const gchar *path, const gchar *instance, const gchar *method)
+gboolean check_access_method(GDBusConnection *bus, const gchar *dest, const gchar *path, const gchar *instance, const gchar *method, const gchar* sig)
 {
     GDBusMessage *request;
     GDBusMessage *reply;
@@ -24,9 +24,7 @@ gboolean check_access_method(GDBusConnection *bus, const gchar *dest, const gcha
 
     request = g_dbus_message_new_method_call(dest, path, instance, method);
 
-    // Set some invalid parameters.
-    // FIXME: Do this properly.
-    g_dbus_message_set_body(request, g_variant_new ("(ddd)", G_PI, G_PI, G_PI));
+    g_dbus_message_set_body(request, build_invalid_body(sig));
 
     reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, timeout, NULL, NULL, NULL);
 
@@ -107,7 +105,7 @@ gboolean check_name_protected(GDBusConnection *bus, const gchar *name)
 
 // Try to read the property, then set it to it's own value.
 /// If we can't read it, set it to "test" and see if it works.
-gboolean check_access_property(GDBusConnection *bus, const gchar *dest, const gchar *path, const gchar *instance, const gchar *property)
+gboolean check_access_property(GDBusConnection *bus, const gchar *dest, const gchar *path, const gchar *instance, const gchar *property, const gchar* sig)
 {
     GDBusMessage *request;
     GDBusMessage *reply;
@@ -128,8 +126,7 @@ gboolean check_access_property(GDBusConnection *bus, const gchar *dest, const gc
     reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, timeout, NULL, NULL, NULL);
 
     if (g_dbus_message_get_message_type(reply) != G_DBUS_MESSAGE_TYPE_METHOD_RETURN) {
-        // OK, we'll just use some nonsense.
-        body = g_variant_new("(ddd)", G_PI, G_PI, G_PI);
+        body = build_invalid_body(sig);
         g_variant_ref(body);
     } else {
         body = g_dbus_message_get_body(reply);

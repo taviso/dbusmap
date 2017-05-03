@@ -75,13 +75,16 @@ void list_dbus_methods(xmlDocPtr doc, GDBusConnection *bus, const gchar *dest, c
 
         if (!g_hash_table_contains(methods, method)) {
             g_hash_table_add(methods, method);
+            gchar* sig = get_method_signature(nodes->nodeTab[i]);
             if (check_access_method(bus,
                                     dest,
                                     path,
                                     nodes->nodeTab[i]->parent->properties->children->content,
-                                    attrib->children->content)) {
+                                    attrib->children->content,
+                                    sig)) {
                 g_print("\t%s %s\n", method, path);
             }
+            g_free(sig);
         }
     }
 
@@ -129,8 +132,10 @@ void list_dbus_properties(xmlDocPtr doc, GDBusConnection *bus, const gchar *dest
 
         if (!g_hash_table_contains(methods, property)) {
             g_hash_table_add(methods, property);
-            if (check_access_property(bus, dest, path, nodes->nodeTab[i]->parent->properties->children->content, attrib->children->content))
+            gchar* sig = get_property_signature(nodes->nodeTab[i]);
+            if (check_access_property(bus, dest, path, nodes->nodeTab[i]->parent->properties->children->content, attrib->children->content, sig))
                 g_print("\t%s %s\n", property, path);
+            g_free(sig);
         }
     }
 
