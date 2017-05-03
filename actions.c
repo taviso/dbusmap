@@ -96,7 +96,7 @@ void get_action_list(GDBusConnection *bus, const gchar *filter)
     g_dbus_message_set_body(request, g_variant_new ("(s)", "C"));
 
     filters = g_strsplit(filter, ",", 0);
-    reply   = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, -1, NULL, NULL, NULL);
+    reply   = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, timeout, NULL, NULL, NULL);
     actions = g_dbus_message_get_body(reply);
 
     // Get an iterator for each ActionDescription structure.

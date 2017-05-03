@@ -28,7 +28,7 @@ gboolean check_access_method(GDBusConnection *bus, const gchar *dest, const gcha
     // FIXME: Do this properly.
     g_dbus_message_set_body(request, g_variant_new ("(ddd)", G_PI, G_PI, G_PI));
 
-    reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, -1, NULL, NULL, NULL);
+    reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, timeout, NULL, NULL, NULL);
 
     // Sometimes the parameters are not checked.
     if (g_dbus_message_get_message_type(reply) == G_DBUS_MESSAGE_TYPE_METHOD_RETURN) {
@@ -80,7 +80,7 @@ gboolean check_name_protected(GDBusConnection *bus, const gchar *name)
 
     g_dbus_message_set_body(request, g_variant_new ("(su)", name, 2));
 
-    reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, -1, NULL, NULL, NULL);
+    reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, timeout, NULL, NULL, NULL);
 
     // Sometimes the parameters are not checked.
     if (g_dbus_message_get_message_type(reply) == G_DBUS_MESSAGE_TYPE_METHOD_RETURN) {
@@ -125,7 +125,7 @@ gboolean check_access_property(GDBusConnection *bus, const gchar *dest, const gc
     // Read the current value
     g_dbus_message_set_body(request, g_variant_new ("(ss)", instance, property));
 
-    reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, -1, NULL, NULL, NULL);
+    reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, timeout, NULL, NULL, NULL);
 
     if (g_dbus_message_get_message_type(reply) != G_DBUS_MESSAGE_TYPE_METHOD_RETURN) {
         // OK, we'll just use some nonsense.
@@ -148,7 +148,7 @@ gboolean check_access_property(GDBusConnection *bus, const gchar *dest, const gc
 
     g_dbus_message_set_body(request, g_variant_new("(ssv)", instance, property, body));
 
-    reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, -1, NULL, NULL, NULL);
+    reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, timeout, NULL, NULL, NULL);
 
     if (g_dbus_message_get_message_type(reply) == G_DBUS_MESSAGE_TYPE_ERROR) {
 

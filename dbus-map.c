@@ -20,6 +20,7 @@ static gboolean enable_session_bus;
 static gboolean enable_invalid_args;
 static gboolean enable_null_agent;
 static gconstpointer enable_dump_actions;
+gint timeout = -1;
 
 static gboolean handle_action_filter(const gchar *option_name, const gchar *value, gpointer data, GError **error);
 
@@ -32,6 +33,7 @@ static GOptionEntry entries[] = {
     { "null-agent", 0, 0, G_OPTION_ARG_NONE, &enable_null_agent, "Create a polkit agent to dismiss prompts", NULL },
     { "dump-actions", 0, G_OPTION_FLAG_OPTIONAL_ARG, G_OPTION_ARG_CALLBACK, &handle_action_filter, "Attempt to dump PolicyKit actions", "[all,none,whatevetr]" },
     { "print-actions", 0, 0, G_OPTION_ARG_NONE, &enable_action_print, "Print actions as they are received by the agent", NULL },
+    { "timeout", 0, 0, G_OPTION_ARG_INT, &timeout, "timeout in milliseconds for sending dbus message", NULL },
     { NULL },
 };
 
@@ -67,7 +69,7 @@ proc_t * get_name_process(GDBusConnection *bus, gchar *name)
 
     g_dbus_message_set_body(request, g_variant_new ("(s)", name));
 
-    reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, -1, NULL, NULL, NULL);
+    reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, timeout, NULL, NULL, NULL);
 
     body = g_dbus_message_get_body(reply);
 

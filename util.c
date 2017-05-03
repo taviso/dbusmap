@@ -14,7 +14,7 @@ GVariant * g_dbus_simple_send(GDBusConnection *bus, GDBusMessage *msg, const gch
     GVariant *body;
     gchar *fmt;
 
-    if (!(reply = g_dbus_send(bus, msg, 0, -1, 0, 0, 0))) {
+    if (!(reply = g_dbus_send(bus, msg, 0, timeout, 0, 0, 0))) {
         g_object_unref(msg);
         return NULL;
     }
