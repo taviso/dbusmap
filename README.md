@@ -180,8 +180,13 @@ ACTIVE=1
 
 Just run make, I think this is enough to install dependencies:
 
+*Ubuntu*
 ```
 $ sudo apt-get install libxml2-dev libprocps-dev glib2.0-dev
 ```
 
+*RedHat*
+```
+$ sudo yum install procps-ng-devel libxml2-devel glib2-devel
+```
 
