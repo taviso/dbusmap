@@ -41,11 +41,15 @@ gchar* get_method_signature(xmlNodePtr node) {
         }
         if (g_str_equal("arg", name)) {
             xmlChar* s = xmlGetProp(cur, (const xmlChar*)"direction");
-            if (!g_str_equal(s, "out")) {
+            if (s) {
+                if (!g_str_equal(s, "out")) {
+                    xmlFree(s);
+                    return dump_property(cur, "type");
+                 }
                 xmlFree(s);
-                return dump_property(cur, "type");
-             }
-            xmlFree(s);
+            } else {
+                g_message("unknown argument direction");
+            }
         }
         cur = cur->next;
     }
