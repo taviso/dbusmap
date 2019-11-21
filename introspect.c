@@ -37,7 +37,7 @@ static gchar * get_name_introspect(GDBusConnection *bus, const gchar *name, cons
         return xml;
     }
 
-    g_warn_if_reached();
+    // This can happen on timeout, or invalid response.
     return NULL;
 }
 

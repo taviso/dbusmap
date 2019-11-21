@@ -20,7 +20,7 @@ static gboolean enable_session_bus;
 static gboolean enable_invalid_args;
 static gboolean enable_null_agent;
 static gconstpointer enable_dump_actions;
-gint timeout = -1;
+gint timeout = 500;
 
 static gboolean handle_action_filter(const gchar *option_name, const gchar *value, gpointer data, GError **error);
 
@@ -31,9 +31,9 @@ static GOptionEntry entries[] = {
     { "include-invalid", 0, 0, G_OPTION_ARG_NONE, &enable_invalid_args, "Include properties that cannot be probed", NULL },
     { "enable-probes", 0, 0, G_OPTION_ARG_NONE, &enable_access_probes, "Try to query which props/methods are accessible (dangerous)", NULL },
     { "null-agent", 0, 0, G_OPTION_ARG_NONE, &enable_null_agent, "Create a polkit agent to dismiss prompts", NULL },
-    { "dump-actions", 0, G_OPTION_FLAG_OPTIONAL_ARG, G_OPTION_ARG_CALLBACK, &handle_action_filter, "Attempt to dump PolicyKit actions", "[all,none,whatevetr]" },
+    { "dump-actions", 0, G_OPTION_FLAG_OPTIONAL_ARG, G_OPTION_ARG_CALLBACK, &handle_action_filter, "Attempt to dump PolicyKit actions", "[all,none,whatever]" },
     { "print-actions", 0, 0, G_OPTION_ARG_NONE, &enable_action_print, "Print actions as they are received by the agent", NULL },
-    { "timeout", 0, 0, G_OPTION_ARG_INT, &timeout, "timeout in milliseconds for sending dbus message", NULL },
+    { "timeout", 0, 0, G_OPTION_ARG_INT, &timeout, "timeout in milliseconds for sending dbus message, or -1 for infinite", "N" },
     { NULL },
 };
 
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
     gchar *str;
     gchar *path;
 
-    context = g_option_context_new (NULL);
+    context = g_option_context_new("[NAME]");
 
     g_option_context_add_main_entries(context, entries, NULL);
     if (g_option_context_parse(context, &argc, &argv, NULL) == false) {
@@ -217,6 +217,11 @@ int main(int argc, char **argv)
 
     while (g_variant_iter_loop(iter, "s", &str)) {
         proc_t  *p = get_name_process(bus, str);
+
+        // If a name is specified on the commandline, limit output to that service.
+        if (argc > 1 && g_strcmp0(str, argv[1]) != 0) {
+            continue;
+        }
 
         if (p) {
             g_print("%d\t%16s\t%40s%c\t%32s", p->tid, p->euser, str, check_name_protected(bus, str) ? ' ' : '!', p->cmdline[0]);
