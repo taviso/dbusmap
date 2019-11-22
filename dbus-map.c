@@ -34,6 +34,7 @@ static GOptionEntry entries[] = {
     { "dump-actions", 0, G_OPTION_FLAG_OPTIONAL_ARG, G_OPTION_ARG_CALLBACK, &handle_action_filter, "Attempt to dump PolicyKit actions", "[all,none,whatever]" },
     { "print-actions", 0, 0, G_OPTION_ARG_NONE, &enable_action_print, "Print actions as they are received by the agent", NULL },
     { "timeout", 0, 0, G_OPTION_ARG_INT, &timeout, "timeout in milliseconds for sending dbus message, or -1 for infinite", "N" },
+    { "auth-password", 0, 0, G_OPTION_ARG_STRING, &polkit_auth_password, "If specified, send polkit the specified password", "password" },
     { NULL },
 };
 
@@ -207,7 +208,7 @@ int main(int argc, char **argv)
     }
 
     if (enable_null_agent) {
-        register_polkit_agent(bus);
+        register_polkit_agent(bus, getpid());
     }
 
     g_option_context_free(context);

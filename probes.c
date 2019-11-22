@@ -18,6 +18,7 @@ gboolean check_access_method(GDBusConnection *bus, const gchar *dest, const gcha
     GDBusMessage *request;
     GDBusMessage *reply;
     gchar        *type;
+    GError       *error = NULL;
 
     if (!enable_access_probes)
         return true;
@@ -26,7 +27,20 @@ gboolean check_access_method(GDBusConnection *bus, const gchar *dest, const gcha
 
     g_dbus_message_set_body(request, build_invalid_body(sig));
 
-    reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, timeout, NULL, NULL, NULL);
+    reply = g_dbus_send(bus, request, G_DBUS_SEND_MESSAGE_FLAGS_NONE, timeout, NULL, NULL, &error);
+
+    if (reply == NULL) {
+        g_assert_nonnull(error);
+
+        if (g_quark_try_string("g-io-error-quark") != error->domain) {
+            g_debug("unexpected error domain %s", g_quark_to_string(error->domain));
+        }
+
+        // Authentication timeout or peer crash.
+        g_object_unref(request);
+        g_error_free(error);
+        return true;
+    }
 
     // Sometimes the parameters are not checked.
     if (g_dbus_message_get_message_type(reply) == G_DBUS_MESSAGE_TYPE_METHOD_RETURN) {
@@ -42,20 +56,23 @@ gboolean check_access_method(GDBusConnection *bus, const gchar *dest, const gcha
     g_object_unref(reply);
     g_object_unref(request);
 
+    // Well, it didn't say not authorized, so that's a good sign.
+    if (g_strcmp0(type, "org.freedesktop.DBus.Python.ValueError") == 0)
+        return true;
     if (g_strcmp0(type, "org.freedesktop.DBus.Error.InvalidArgs") == 0)
         return true;
-    if (g_strcmp0(type, "org.freedesktop.DBus.Error.AccessDenied") == 0)
-        return false;
     if (g_strcmp0(type, "org.freedesktop.DBus.Python.TypeError") == 0)
-        return true;
-    if (g_strcmp0(type, "org.freedesktop.DBus.Error.UnknownMethod") == 0)
         return true;
     if (g_strcmp0(type, "org.freedesktop.DBus.Python.dbus.exceptions.DBusException") == 0)
         return true;
+
+    // These are a pretty clear indication we dont have access.
+    if (g_strcmp0(type, "org.freedesktop.DBus.Error.UnknownMethod") == 0)
+        return false;
+    if (g_strcmp0(type, "org.freedesktop.DBus.Error.AccessDenied") == 0)
+        return false;
     if (g_strcmp0(type, "org.freedesktop.PolicyKit.Error.NotAuthorized") == 0)
-        return true;
-    if (g_strcmp0(type, "org.freedesktop.DBus.Python.ValueError") == 0)
-        return true;
+        return false;
     if (g_strstr_len(type, -1, "PolKit.NotAuthorizedException"))
         return false;
     if (g_strstr_len(type, -1, "authorization_2derror"))
@@ -155,8 +172,12 @@ gboolean check_access_property(GDBusConnection *bus, const gchar *dest, const gc
         g_object_unref(request);
         g_variant_unref(body);
 
+        // These are a good sign that we might be permitted to use this.
         if (g_strcmp0(type, "org.freedesktop.DBus.Error.InvalidArgs") == 0)
             return true;
+        if (g_strcmp0(type, "org.freedesktop.DBus.Error.NoReply") == 0)
+            return true;
+
         if (g_strcmp0(type, "org.freedesktop.DBus.Error.AccessDenied") == 0)
             return false;
         if (g_strcmp0(type, "org.freedesktop.DBus.Error.PropertyReadOnly") == 0)
@@ -167,10 +188,8 @@ gboolean check_access_property(GDBusConnection *bus, const gchar *dest, const gc
             return false;
         if (g_strcmp0(type, "org.freedesktop.DBus.Error.UnknownMethod") == 0)
             return false;
-        if (g_strcmp0(type, "org.freedesktop.DBus.Error.NoReply") == 0)
-            return true;
         if (g_strcmp0(type, "org.freedesktop.DBus.Error.ServiceUnknown") == 0)
-            return true;
+            return false;
         if (g_strstr_len(type, -1, "authorization_2derror"))
             return false;
 
